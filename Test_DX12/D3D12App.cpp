@@ -82,8 +82,11 @@ int D3D12App::Run()
         {
             float dt = m_timer.Reset();
             
-            Update(dt);	
+            Update(dt);
+
+            BeginDraw();
             Draw(dt);
+            EndDraw();
         }
     }
 
@@ -122,7 +125,7 @@ LRESULT D3D12App::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     }
 
-    return 0;
+    return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 void D3D12App::CreateRtvAndDsvDescriptorHeaps()
@@ -251,7 +254,7 @@ void D3D12App::OnResize()
     m_scissorRect = { 0, 0, m_clientWidth, m_clientHeight };
 }
 
-void D3D12App::Draw(float dt)
+void D3D12App::BeginDraw()
 {
     m_pCommandAllocator->Reset();
     m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
@@ -278,10 +281,12 @@ void D3D12App::Draw(float dt)
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CurrentBackBufferView();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = DepthStencilView();
-    
     m_pCommandList->OMSetRenderTargets(1, &rtvHandle,
         true, &dsvHandle);
+}
 
+void D3D12App::EndDraw()
+{
     D3D12_RESOURCE_BARRIER rbarrier2;
     rbarrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     rbarrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -298,7 +303,6 @@ void D3D12App::Draw(float dt)
 
     m_pSwapChain->Present(0, 0);
     m_currBackBuffer = (m_currBackBuffer + 1) % SwapChainBufferCount;
-
 }
 
 bool D3D12App::InitMainWindow()
@@ -334,13 +338,13 @@ bool D3D12App::InitMainWindow()
         nullptr
     );
 
-    DWORD error = GetLastError();
     if( !m_mainWnd )
     {
-        
+        DWORD error = GetLastError();  // Get error IMMEDIATELY
         wchar_t buf[256];
-        swprintf_s(buf, L"m_mainWnd = 0x%p", m_mainWnd);
-        MessageBox(0, buf, L"Window Handle", 0);
+        swprintf_s(buf, L"CreateWindowEx failed. Error code: %d\nHandle: 0x%p", error, m_mainWnd);
+        MessageBox(0, buf, L"Window Creation Error", 0);
+        return false;
     }
     
     ShowWindow(m_mainWnd, SW_SHOW);

@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <d3d12.h>
+#include "d3dx12.h"
 #include <dxgi1_6.h>
 #include <wrl.h>
 #include <DirectXColors.h>
@@ -41,8 +42,11 @@ protected:
     virtual void CreateRtvAndDsvDescriptorHeaps();
     virtual void OnResize();
     virtual void Update(float dt) {}
-    virtual void Draw(float dt);
+    virtual void Draw(float dt) {}
 
+    void BeginDraw();
+    void EndDraw();
+    
     bool InitMainWindow();
     bool InitDirect3D();
     void CreateCommandObjects();
