@@ -103,6 +103,8 @@ bool D3D12App::Initialize()
 
     // Do the initial resize code.
     OnResize();
+    ShowWindow(m_mainWnd, SW_SHOW);
+    UpdateWindow(m_mainWnd);
 
     return true;
 }
@@ -346,9 +348,6 @@ bool D3D12App::InitMainWindow()
         MessageBox(0, buf, L"Window Creation Error", 0);
         return false;
     }
-    
-    ShowWindow(m_mainWnd, SW_SHOW);
-    UpdateWindow(m_mainWnd);
 
     return true;
 }

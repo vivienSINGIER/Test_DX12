@@ -1,8 +1,25 @@
 #ifndef TRIANGLEAPP_H_DEFINED
 #define TRIANGLEAPP_H_DEFINED
-#include <memory>
 
 #include "D3D12App.h"
+
+using namespace DirectX;
+
+struct Vertex
+{
+    XMFLOAT3 pos;
+    XMFLOAT4 color;
+};
+
+struct ObjectConstants
+{
+    XMFLOAT4X4 WorldViewProj;
+
+    ObjectConstants()
+    {
+        XMStoreFloat4x4(&WorldViewProj, XMMatrixIdentity());
+    }
+};
 
 class TriangleApp : public D3D12App
 {
@@ -18,13 +35,13 @@ public:
     void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildShadersAndInputLayout();
-    void BuildBoxGeometry();
+    void BuildTriangleGeometry();
     void BuildPSO();
 
 private:
     ComPtr<ID3D12DescriptorHeap> m_cbvHeap = nullptr;
 
-    std::unique_ptr<UploadBuffer<>>
+    
 };
 
 #endif

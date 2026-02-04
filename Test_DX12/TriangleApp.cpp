@@ -3,6 +3,8 @@
 
 #include "TriangleApp.h"
 
+#include "d3dUtil.h"
+
 TriangleApp::TriangleApp(HINSTANCE hinstance) : D3D12App(hinstance)
 {
 }
@@ -22,7 +24,7 @@ bool TriangleApp::Initialize()
     BuildConstantBuffers();
     BuildRootSignature();
     BuildShadersAndInputLayout();
-    BuildBoxGeometry();
+    BuildTriangleGeometry();
     BuildPSO();
 
     // Execute the initialization commands.
@@ -48,6 +50,41 @@ void TriangleApp::BuildDescriptorHeaps()
 void TriangleApp::BuildConstantBuffers()
 {
     
+}
+
+void TriangleApp::BuildRootSignature()
+{
+}
+
+void TriangleApp::BuildShadersAndInputLayout()
+{
+    D3D12_INPUT_ELEMENT_DESC desc1[] =
+    {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, 
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, 
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+    };
+}
+
+void TriangleApp::BuildTriangleGeometry()
+{
+    Vertex vertices[] =
+    {
+        { XMFLOAT3(-1.0f, 0.5f, 0.0f), XMFLOAT4(Colors::Red) },
+        { XMFLOAT3(1.0f, 0.5f, 0.0f), XMFLOAT4(Colors::Blue) },
+        { XMFLOAT3(0.0f, -0.5f, -1.0f), XMFLOAT4(Colors::Green) },
+    };
+    
+    const UINT64 vbByteSize = 3 * sizeof(Vertex);
+    ComPtr<ID3D12Resource> VertexBufferGPU = nullptr;
+    ComPtr<ID3D12Resource> VertexBufferUploader = nullptr;
+    VertexBufferGPU = d3dUtil::CreateDefaultBuffer(m_pDevice.Get(),
+     m_pCommandList.Get(), vertices, vbByteSize, VertexBufferUploader);
+}
+
+void TriangleApp::BuildPSO()
+{
 }
 
 
