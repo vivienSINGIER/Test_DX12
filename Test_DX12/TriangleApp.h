@@ -2,6 +2,9 @@
 #define TRIANGLEAPP_H_DEFINED
 
 #include "D3D12App.h"
+#include "UploadBuffer.h"
+#include "d3dUtil.h"
+#include "MathHelper.h"
 
 using namespace DirectX;
 
@@ -13,12 +16,7 @@ struct Vertex
 
 struct ObjectConstants
 {
-    XMFLOAT4X4 WorldViewProj;
-
-    ObjectConstants()
-    {
-        XMStoreFloat4x4(&WorldViewProj, XMMatrixIdentity());
-    }
+    XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
 };
 
 class TriangleApp : public D3D12App
@@ -30,6 +28,7 @@ public:
     virtual ~TriangleApp();
 
     virtual bool Initialize() override;
+    virtual void Draw(float dt) override;
     
     void BuildDescriptorHeaps();
     void BuildConstantBuffers();
@@ -39,9 +38,22 @@ public:
     void BuildPSO();
 
 private:
-    ComPtr<ID3D12DescriptorHeap> m_cbvHeap = nullptr;
 
+    ComPtr<ID3D12RootSignature> m_pRootSignature = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_cbvHeap = nullptr;
+    ComPtr<ID3D12PipelineState> m_pPSO = nullptr;
+
+    std::vector<D3D12_INPUT_ELEMENT_DESC> m_inputLayout;
     
+    std::unique_ptr<UploadBuffer<ObjectConstants>> m_pObjectCB = nullptr;
+    std::unique_ptr<MeshGeometry> m_pGeo = nullptr;
+
+    ComPtr<ID3DBlob> m_pVsByteCode = nullptr;
+    ComPtr<ID3DBlob> m_pPsByteCode = nullptr;
+
+    XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+    XMFLOAT4X4 mView = MathHelper::Identity4x4();
+    XMFLOAT4X4 mProj = MathHelper::Identity4x4();
 };
 
 #endif

@@ -129,6 +129,7 @@
     <ClInclude Include="d3dUtil.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Test_DX12.h" />
@@ -138,8 +139,9 @@
   <ItemGroup>
     <ClCompile Include="Chrono.cpp" />
     <ClCompile Include="D3D12App.cpp" />
+    <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="UploadBuffer.cpp" />
-    <None Include="Shaders\Shaders.hlsl" />
+    <None Include="Shaders\color.hlsl" />
     <ClCompile Include="d3dUtil.cpp" />
     <ClCompile Include="Test_DX12.cpp" />
     <ClCompile Include="TriangleApp.cpp" />

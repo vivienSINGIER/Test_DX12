@@ -78,10 +78,9 @@ protected:
     ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
     ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
 
-    ComPtr<IDXGISwapChain> m_pSwapChain;
+    ComPtr<IDXGISwapChain3> m_pSwapChain;
     
     static const int SwapChainBufferCount = 2;
-    int m_currBackBuffer = 0;
     ComPtr<ID3D12Resource> m_pSwapChainBuffer[SwapChainBufferCount];
     ComPtr<ID3D12Resource> m_pDepthStencilBuffer;
 

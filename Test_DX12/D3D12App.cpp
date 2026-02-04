@@ -166,8 +166,6 @@ void D3D12App::OnResize()
 		m_clientWidth, m_clientHeight, 
 		mBackBufferFormat, 
 		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-
-	m_currBackBuffer = 0;
     
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT i = 0; i < SwapChainBufferCount; i++)
@@ -270,8 +268,6 @@ void D3D12App::BeginDraw()
     rbarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     m_pCommandList->ResourceBarrier(1, &rbarrier);
 
-    m_pCommandList->RSSetViewports(1, &m_screenViewport);
-    m_pCommandList->RSSetScissorRects(1, &m_scissorRect);
     
     m_pCommandList->ClearRenderTargetView(
         CurrentBackBufferView(),
@@ -280,11 +276,15 @@ void D3D12App::BeginDraw()
         D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
         1.0f, 0, 0, nullptr
         );
-
+    
+    m_pCommandList->RSSetViewports(1, &m_screenViewport);
+    m_pCommandList->RSSetScissorRects(1, &m_scissorRect);
+    
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CurrentBackBufferView();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = DepthStencilView();
     m_pCommandList->OMSetRenderTargets(1, &rtvHandle,
         true, &dsvHandle);
+
 }
 
 void D3D12App::EndDraw()
@@ -304,7 +304,6 @@ void D3D12App::EndDraw()
     m_pCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
     m_pSwapChain->Present(0, 0);
-    m_currBackBuffer = (m_currBackBuffer + 1) % SwapChainBufferCount;
 }
 
 bool D3D12App::InitMainWindow()
@@ -354,6 +353,16 @@ bool D3D12App::InitMainWindow()
 
 bool D3D12App::InitDirect3D()
 {
+#if defined(_DEBUG)
+    {
+        Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
+        if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+        {
+            debugController->EnableDebugLayer();
+        }
+    }
+#endif
+    
     CreateDXGIFactory(IID_PPV_ARGS(&m_pFactory));
     
     D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_pDevice));
@@ -416,7 +425,11 @@ void D3D12App::CreateSwapChain()
     sd.Windowed = true;
     sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    m_pFactory->CreateSwapChain(m_pCommandQueue.Get(), &sd, m_pSwapChain.GetAddressOf());
+
+    ComPtr<IDXGISwapChain> tempSwapChain;
+    m_pFactory->CreateSwapChain(m_pCommandQueue.Get(), &sd, tempSwapChain.GetAddressOf());
+
+    tempSwapChain.As(&m_pSwapChain);
 }
 
 void D3D12App::FlushCommandQueue()
@@ -437,14 +450,15 @@ void D3D12App::FlushCommandQueue()
 
 ID3D12Resource* D3D12App::CurrentBackBuffer() const
 {
-    return m_pSwapChainBuffer[m_currBackBuffer].Get();
+    return m_pSwapChainBuffer[m_pSwapChain->GetCurrentBackBufferIndex()].Get();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12App::CurrentBackBufferView() const
 {
-    D3D12_CPU_DESCRIPTOR_HANDLE handle = m_pRtvHeap->GetCPUDescriptorHandleForHeapStart();
-    handle.ptr += m_currBackBuffer * m_rtvDescriptorSize;
-    return handle;
+    return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+         m_pRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+         m_pSwapChain->GetCurrentBackBufferIndex(),
+         m_rtvDescriptorSize);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12App::DepthStencilView() const
