@@ -17,15 +17,15 @@ bool TriangleApp::Initialize()
 {
     if (D3D12App::Initialize() == false)
         return false;
+    BuildDescriptorHeaps();
+    BuildRootSignature();
+    BuildShadersAndInputLayout();
+    BuildPSO();
 
     m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 
-    BuildDescriptorHeaps();
     BuildConstantBuffers();
-    BuildRootSignature();
-    BuildShadersAndInputLayout();
     BuildTriangleGeometry();
-    BuildPSO();
 
     
     // Execute the initialization commands.
@@ -35,8 +35,28 @@ bool TriangleApp::Initialize()
 
     // Wait until initialization is complete.
     FlushCommandQueue();
+
+    float x = 0.0f;
+    float z = 20.0f;
+    float y = 0.0f;
     
-    m_pObjectCB->CopyData(0, ObjectConstants());
+    // Build the view matrix.
+    XMVECTOR pos = XMVectorZero();
+    XMVECTOR target = XMVectorSet(x, y, z, 1.0f);
+    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+    XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+    XMStoreFloat4x4(&mView, view);
+
+    XMMATRIX world = XMMatrixTranslation(x, y, z);
+    XMMATRIX proj = XMLoadFloat4x4(&mProj);
+    XMMATRIX worldViewProj = world*view*proj;
+
+    // Update the constant buffer with the latest worldViewProj matrix.
+    ObjectConstants objConstants;
+    XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+    
+    m_pObjectCB->CopyData(0, objConstants);
 
     return true;
 }
@@ -46,6 +66,7 @@ void TriangleApp::Draw(float dt)
     // Set the used descriptor heaps
     ID3D12DescriptorHeap* desciptorHeaps[] = { m_cbvHeap.Get() };
     m_pCommandList->SetDescriptorHeaps(_countof(desciptorHeaps), desciptorHeaps);
+    
     m_pCommandList->SetGraphicsRootSignature(m_pRootSignature.Get());
     m_pCommandList->SetPipelineState(m_pPSO.Get());
     
@@ -66,6 +87,15 @@ void TriangleApp::Draw(float dt)
 void TriangleApp::Update(float dt)
 {
     
+}
+
+void TriangleApp::OnResize()
+{
+    D3D12App::OnResize();
+    float r = GetAspectRatio();
+    
+    XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*MathHelper::Pi, GetAspectRatio(), 1.0f, 1000.0f);
+    XMStoreFloat4x4(&mProj, P);
 }
 
 void TriangleApp::BuildDescriptorHeaps()
@@ -133,12 +163,13 @@ void TriangleApp::BuildTriangleGeometry()
     {
         { XMFLOAT3(-1.0f, 0.5f, 0.0f), XMFLOAT4(Colors::Red) },
         { XMFLOAT3(1.0f, 0.5f, 0.0f), XMFLOAT4(Colors::Blue) },
-        { XMFLOAT3(0.0f, -0.5f, -1.0f), XMFLOAT4(Colors::Green) },
+        { XMFLOAT3(0.0f, -0.5f, 0.0f), XMFLOAT4(Colors::Green) },
     };
 
     uint16_t indices[] =
     {
-        0, 1, 2    
+        0, 1, 2,    
+        //0, 2, 1    
     };
     
     const UINT64 vbByteSize = 3 * sizeof(Vertex);
