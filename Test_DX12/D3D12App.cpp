@@ -5,6 +5,8 @@
 
 #include <corecrt_wstdio.h>
 
+#include "d3dUtil.h"
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -72,22 +74,21 @@ int D3D12App::Run()
     while(msg.message != WM_QUIT)
     {
         // If there are Window messages then process them.
-        if(PeekMessage( &msg, 0, 0, 0, PM_REMOVE ))
+        while (PeekMessage( &msg, 0, 0, 0, PM_REMOVE ))
         {
             TranslateMessage( &msg );
             DispatchMessage( &msg );
         }
-        // Otherwise, do animation/game stuff.
-        else
-        {
-            float dt = m_timer.Reset();
-            
-            Update(dt);
 
-            BeginDraw();
-            Draw(dt);
-            EndDraw();
-        }
+        float dt = m_timer.Reset();
+        
+        Update(dt);
+
+        BeginDraw();
+        Draw(dt);
+        EndDraw();
+
+        FlushCommandQueue();
     }
 
     return (int)msg.wParam;
@@ -267,7 +268,6 @@ void D3D12App::BeginDraw()
     rbarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     rbarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     m_pCommandList->ResourceBarrier(1, &rbarrier);
-
     
     m_pCommandList->ClearRenderTargetView(
         CurrentBackBufferView(),
@@ -303,7 +303,8 @@ void D3D12App::EndDraw()
     ID3D12CommandList* cmdsLists[] = { m_pCommandList.Get() };
     m_pCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
-    m_pSwapChain->Present(0, 0);
+    HRESULT hr = m_pSwapChain->Present(0, 0);
+    ThrowIfFailed(hr);
 }
 
 bool D3D12App::InitMainWindow()

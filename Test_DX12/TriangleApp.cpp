@@ -27,6 +27,7 @@ bool TriangleApp::Initialize()
     BuildTriangleGeometry();
     BuildPSO();
 
+    
     // Execute the initialization commands.
     m_pCommandList->Close();
     ID3D12CommandList* cmdsLists[] = { m_pCommandList.Get() };
@@ -34,6 +35,8 @@ bool TriangleApp::Initialize()
 
     // Wait until initialization is complete.
     FlushCommandQueue();
+    
+    m_pObjectCB->CopyData(0, ObjectConstants());
 
     return true;
 }
@@ -43,8 +46,8 @@ void TriangleApp::Draw(float dt)
     // Set the used descriptor heaps
     ID3D12DescriptorHeap* desciptorHeaps[] = { m_cbvHeap.Get() };
     m_pCommandList->SetDescriptorHeaps(_countof(desciptorHeaps), desciptorHeaps);
-    m_pCommandList->SetPipelineState(m_pPSO.Get());
     m_pCommandList->SetGraphicsRootSignature(m_pRootSignature.Get());
+    m_pCommandList->SetPipelineState(m_pPSO.Get());
     
     m_pCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     
@@ -57,6 +60,11 @@ void TriangleApp::Draw(float dt)
     
     m_pCommandList->DrawIndexedInstanced(m_pGeo->DrawArgs["triangle"].IndexCount,
         1, 0, 0, 0);
+    
+}
+
+void TriangleApp::Update(float dt)
+{
     
 }
 

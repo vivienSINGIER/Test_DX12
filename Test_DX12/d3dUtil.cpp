@@ -114,13 +114,6 @@ ComPtr<ID3DBlob> d3dUtil::CompileShader(
 	ComPtr<ID3DBlob> errors;
 	hr = D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		entrypoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
-
-	wchar_t currentDir[MAX_PATH];
-	GetCurrentDirectoryW(MAX_PATH, currentDir);
-	std::wstring msg = L"Current directory: ";
-	msg += currentDir;
-	msg += L"\n";
-	OutputDebugStringW(msg.c_str());
 	
 	if(errors != nullptr)
 	{

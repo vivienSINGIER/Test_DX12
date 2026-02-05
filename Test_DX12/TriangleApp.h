@@ -29,6 +29,7 @@ public:
 
     virtual bool Initialize() override;
     virtual void Draw(float dt) override;
+    virtual void Update(float dt) override;
     
     void BuildDescriptorHeaps();
     void BuildConstantBuffers();
