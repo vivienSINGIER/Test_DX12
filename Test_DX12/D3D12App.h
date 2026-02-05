@@ -1,20 +1,7 @@
 #ifndef D3D12APP_H_DEFINED
 #define D3D12APP_H_DEFINED
 
-#include <windows.h>
-#include <d3d12.h>
-#include "d3dx12.h"
-#include <dxgi1_6.h>
-#include <wrl.h>
-#include <DirectXColors.h>
-
-#include "Chrono.h"
-
-#pragma comment(lib,"d3dcompiler.lib")
-#pragma comment(lib, "D3D12.lib")
-#pragma comment(lib, "dxgi.lib")
-
-using Microsoft::WRL::ComPtr;
+#include "Encaps/Render.h"
 
 class D3D12App
 {

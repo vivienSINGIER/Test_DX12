@@ -2,9 +2,7 @@
 #define TRIANGLEAPP_H_DEFINED
 
 #include "D3D12App.h"
-#include "UploadBuffer.h"
 #include "d3dUtil.h"
-#include "MathHelper.h"
 
 using namespace DirectX;
 
